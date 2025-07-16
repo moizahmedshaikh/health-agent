@@ -1,53 +1,56 @@
-import re
-from typing import TypedDict
-from agents import function_tool
+from agents.tool import function_tool
+from agents import RunContextWrapper, Runner, Agent
+from pydantic import BaseModel
+from context import UserSessionContext
+from configure_gemini import *
+from all_guardrails.guardrails import goal_output_guardrail
+from schemas.goal_schema import ParsedGoal
 
-class Goal(TypedDict):
-    goal_type: str
-    amount: float
-    unit: str
-    duration: str
+
+goal_parser_agent = Agent(
+    name="Goal Parser Agent",
+    instructions="""
+You analyze a user's health-related goal and return a clean, structured JSON object.
+Only respond with the valid JSON format like:
+{
+  "goal_type": "weight_loss",
+  "quantity": 5.0,
+  "metric": "kg",
+  "duration": "2 months"
+}
+""",
+    output_type=ParsedGoal,
+    output_guardrails=[goal_output_guardrail]
+)
 
 
 @function_tool
-def analyze_goal(input_text: str)-> Goal:
-    """Analyze the user's health goal and return structured format"""
-    text = input_text.lower()
+async def analyze_goal(ctx: RunContextWrapper[UserSessionContext], goal_description: str) -> str:
+    """
+    Uses LLM to analyze and convert a goal like 'I want to lose 5kg in 2 months'
+    into a structured ParsedGoal object, but returns user-friendly text.
+    """
 
-    amount_unit_match = re.search(r"(\d+)\s?(kg|kgs|pounds|lbs)", text)
-    duration_match = re.search(r"(in|for)?\s?(\d+)\s?(month|months|week|weeks|day|days)", text)
+    result = await Runner.run(
+        starting_agent=goal_parser_agent,
+        input=goal_description,
+        context=ctx.context,
+        run_config=config
+    )
 
-    if not amount_unit_match:
-        raise ValueError("Missing weight amount/unit. Please say something like 'lose 5kg'.")
-    
-    if not duration_match:
-        raise ValueError("Missing duration. Please say something like 'in 2 months'.")
+    parsed_goal: ParsedGoal = result.final_output
 
-
-    if amount_unit_match:
-        amount = float(amount_unit_match.group(1))
-        unit = amount_unit_match.group(2)
-    else:
-        amount = 0
-        unit = "kg"
-        
-
-    if duration_match:
-        duration = f"{duration_match.group(2)} {duration_match.group(3)}"
-    else:
-        duration = "unspecified"
-
-    
-    if "gain" in text:
-        goal_type = "weight_gain"
-    elif "loss" in text or "lose" in text or "kam" in text or "reduce" in text:
-        goal_type = "weight_loss"
-    else:
-        goal_type = "general_fitness"
-
-    return {
-        "goal_type": goal_type,
-        "amount": amount,
-        "unit": unit,
-        "duration": duration
+    # 🎯 Create a clean summary
+    goal_type_map = {
+        "weight_loss": "lose",
+        "weight_gain": "gain weight",
+        "muscle_gain": "build muscle",
+        "general_fitness": "improve fitness"
     }
+
+    summary = (
+        f"✅ Goal confirmed: You want to {goal_type_map.get(parsed_goal.goal_type, 'work on your goal')} "
+        f"{parsed_goal.quantity} {parsed_goal.metric} in {parsed_goal.duration}."
+    )
+
+    return summary

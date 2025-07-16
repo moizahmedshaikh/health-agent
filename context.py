@@ -1,8 +1,11 @@
-from agents import RunContextWrapper
+from typing import Optional, List, Dict
 from pydantic import BaseModel
-from typing import Optional, Dict, List
+
 
 class UserSessionContext(BaseModel):
+    
+    """User session context to maintain state across conversations"""
+
     name: str
     uid: int
     goal: Optional[dict] = None
@@ -12,5 +15,5 @@ class UserSessionContext(BaseModel):
     injury_notes: Optional[str] = None
     handoff_logs: List[str] = []
     progress_logs: List[Dict[str, str]] = []
-    checkin_day: Optional[str] = "Friday"
-    last_error: str = None
+
+
