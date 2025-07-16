@@ -29,7 +29,6 @@ async def schedule_checkin(ctx: RunContextWrapper[UserSessionContext]) -> str:
     Returns a user-friendly message.
     """
 
-    # 🔒 Fallback if goal is None
     user_goal = ctx.context.goal or {
         "goal_type": "general_fitness",
         "quantity": None,
@@ -47,14 +46,12 @@ async def schedule_checkin(ctx: RunContextWrapper[UserSessionContext]) -> str:
 
     schedule = result.final_output
 
-    # 🧠 Save to progress logs
     ctx.context.progress_logs.append({
         "type": "checkin_schedule",
         "frequency": schedule.frequency,
         "day": schedule.day or ""
     })
 
-    # ✅ Friendly response for user
     if schedule.frequency.lower() == "weekly" and schedule.day:
         return f"✅ I've scheduled weekly check-ins for you every **{schedule.day}**. Stay consistent! 📆"
     else:

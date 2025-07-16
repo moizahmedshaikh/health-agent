@@ -25,7 +25,6 @@ async def goal_input_guadrail(
 
     print("🛡️ Raw input received:", input)
 
-    # Normalize input
     if isinstance(input, list):
         input_text = " ".join(str(item) for item in input)
     elif isinstance(input, str):
@@ -39,7 +38,6 @@ async def goal_input_guadrail(
     input_text = input_text.lower()
     print("✅ Normalized input:", input_text)
 
-    # 🚨 Escalation keywords
     escalation_keywords = ["frustrated", "angry", "issue", "problem", "not working", "annoyed"]
     if any(word in input_text for word in escalation_keywords):
         print("⚠️ Escalation-related input detected.")
@@ -48,7 +46,6 @@ async def goal_input_guadrail(
             tripwire_triggered=False
         )
 
-    # 🩹 Injury-related
     injury_keywords = ["injury", "pain", "hurt", "sore", "can’t move", "sprain", "broken", "brain injury"]
     if any(word in input_text for word in injury_keywords):
         print("⚠️ Injury-related input detected.")
@@ -57,14 +54,12 @@ async def goal_input_guadrail(
             tripwire_triggered=False
         )
 
-    # ❌ Block unsafe/unrealistic goals
     if "100kg" in input_text and ("days" in input_text or "week" in input_text):
         return GuardrailFunctionOutput(
             output_info="❌ Unrealistic goal. Please provide a more achievable target like 5-10kg in 2-3 months.",
             tripwire_triggered=True
         )
 
-    # ✅ Must contain goal-specific keywords
     valid_keywords = [
         "lose", "gain", "build", "improve", "track", "plan",
         "workout", "exercise", "meal", "diet", "schedule",
@@ -93,14 +88,12 @@ async def goal_output_guardrail(ctx, agent, output) -> GuardrailFunctionOutput:
 
     print("🔍 Raw output type:", type(output))
 
-    # Allow structured goal object
     if isinstance(output, ParsedGoal):
         return GuardrailFunctionOutput(
             output_info="✅ Parsed goal is valid.",
             tripwire_triggered=False
         )
 
-    # Allow string-based user messages
     if isinstance(output, str):
         print("✅ Detected user-facing message.")
         return GuardrailFunctionOutput(
@@ -108,7 +101,6 @@ async def goal_output_guardrail(ctx, agent, output) -> GuardrailFunctionOutput:
             tripwire_triggered=False
         )
 
-    # Block unknown outputs
     return GuardrailFunctionOutput(
         output_info="❌ Output unrecognized or not allowed. Please return a valid ParsedGoal or assistant message.",
         tripwire_triggered=True

@@ -39,13 +39,10 @@ async def track_progress(ctx: RunContextWrapper[UserSessionContext], user_update
             run_config=config
         )
 
-        # 🕒 Timestamp injection
         result.final_output.timestamp = datetime.now().strftime("%Y-%m-%d %H:%M")
 
-        # 🧠 Log to progress
         ctx.context.progress_logs.append(result.final_output.dict())
 
-        # ✅ Friendly user-facing message
         return f"✅ Got it! Your progress has been logged as **{result.final_output.update_type}**. Keep it up! 💪"
 
     except Exception as e:

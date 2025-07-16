@@ -11,13 +11,11 @@ async def on_chat_start():
     cl.user_session.set("chat_history", [])
     cl.user_session.set("context", UserSessionContext(name="Moiz Ahmed", uid=1))
 
-    # Store all agents in session
     cl.user_session.set("agent", health_wellness_agent)
     cl.user_session.set("escalation_agent", escalation_agent)
     cl.user_session.set("nutrition_expert_agent", nutrition_expert_agent)
     cl.user_session.set("injury_support_agent", injury_support_agent)
 
-    # Set default + memory agent
     cl.user_session.set("current_agent", health_wellness_agent)
     cl.user_session.set("previous_agent", health_wellness_agent)
 
@@ -42,7 +40,6 @@ async def handle_on_message(message: cl.Message):
     await msg.send()
 
     try:
-        # Append user message to history
         history.append({"role": "user", "content": message.content})
 
         result = Runner.run_streamed(
@@ -88,7 +85,6 @@ async def handle_on_message(message: cl.Message):
             return
 
                     
-        # Final assistant response
         history.append({"role": "assistant", "content": msg.content})
         cl.user_session.set("chat_history", history)
         await msg.update()

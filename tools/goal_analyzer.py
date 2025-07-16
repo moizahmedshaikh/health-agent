@@ -40,7 +40,6 @@ async def analyze_goal(ctx: RunContextWrapper[UserSessionContext], goal_descript
 
     parsed_goal: ParsedGoal = result.final_output
 
-    # 🎯 Create a clean summary
     goal_type_map = {
         "weight_loss": "lose",
         "weight_gain": "gain weight",
