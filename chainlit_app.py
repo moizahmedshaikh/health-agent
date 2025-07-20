@@ -6,6 +6,16 @@ from context import UserSessionContext
 from agents import Agent, InputGuardrailTripwireTriggered, Runner
 from configure_gemini import *
 
+
+SWITCH_BACK_TRIGGERS = [
+    "switch me back",
+    "return to planner",
+    "go back to health planner",
+    "go back to main agent",
+    "change agent to health wellness planner"
+]
+
+
 @cl.on_chat_start
 async def on_chat_start():
     cl.user_session.set("chat_history", [])
@@ -34,16 +44,22 @@ Where shall we begin?"""
 async def handle_on_message(message: cl.Message):
     history = cl.user_session.get("chat_history") or []
     contx = cl.user_session.get("context")
-    agent = cast(Agent, cl.user_session.get("current_agent"))
+    curr_agent = cast(Agent, cl.user_session.get("current_agent"))
 
+    user_input = message.content.strip().lower()
     msg = cl.Message(content="")
     await msg.send()
+
+    if user_input in SWITCH_BACK_TRIGGERS:
+        cl.user_session.set("current_agent", health_wellness_agent)
+        await cl.Message(content="🔁 Switched back to: Health & Wellness Planner").send()
+        return
 
     try:
         history.append({"role": "user", "content": message.content})
 
         result = Runner.run_streamed(
-            agent,
+            curr_agent,
             input=history,
             context=contx,
             run_config=config
@@ -78,20 +94,13 @@ async def handle_on_message(message: cl.Message):
                     if output:
                         await cl.Message(content=f"✅ [Tool output]: {output}").send()
 
-        if message.content.lower() in ["switch me back", "return to planner"]:
-            prev_agent = cl.user_session.get("previous_agent")
-            cl.user_session.set("current_agent", prev_agent)
-            await cl.Message(content=f"🔁 Switched back to: {prev_agent.name}").send()
-            return
-
                     
         history.append({"role": "assistant", "content": msg.content})
         cl.user_session.set("chat_history", history)
         await msg.update()
 
     except InputGuardrailTripwireTriggered as e:
-        reason = getattr(e, "output_info", str(e)) or "⚠️ Input blocked."
-        await msg.stream_token(f"🛡️ {reason}")
+        await msg.stream_token(f"🛡️ {e.guardrail_result.output.output_info}")
         await msg.update()
 
     except Exception as e:

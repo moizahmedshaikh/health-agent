@@ -3,8 +3,8 @@ from all_agents.nutrition_expert_agent import nutrition_expert_agent
 from all_agents.injury_support_agent import injury_support_agent
 from all_agents.escalation_agent import escalation_agent
 from all_guardrails.guardrails import goal_input_guadrail, goal_output_guardrail
-from tools.goal_analyzer import analyze_goal
 from tools.meal_planner import meal_planner
+from tools.goal_analyzer import analyze_goal
 from tools.scheduler import schedule_checkin
 from tools.tracker import track_progress
 from tools.workout_recommender import workout_recommend
@@ -54,3 +54,4 @@ Responsibilities:
         escalation_agent
     ],
 )
+

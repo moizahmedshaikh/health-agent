@@ -23,7 +23,7 @@ progress_tracker_agent = Agent(
 )
 
 
-@function_tool
+@function_tool(name_override="track_progress")
 async def track_progress(ctx: RunContextWrapper[UserSessionContext], user_update: str) -> str:
     """
     Accepts a user update and classifies + stores it. Returns a user-friendly confirmation.

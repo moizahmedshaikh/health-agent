@@ -22,7 +22,7 @@ scheduler_agent = Agent(
 )
 
 
-@function_tool
+@function_tool(name_override="schedule_checkin")
 async def schedule_checkin(ctx: RunContextWrapper[UserSessionContext]) -> str:
     """
     Suggests check-in schedule (like weekly reminders) based on user goals.

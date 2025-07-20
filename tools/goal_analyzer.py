@@ -24,7 +24,7 @@ Only respond with the valid JSON format like:
 )
 
 
-@function_tool
+@function_tool(name_override="analyze_goal")
 async def analyze_goal(ctx: RunContextWrapper[UserSessionContext], goal_description: str) -> str:
     """
     Uses LLM to analyze and convert a goal like 'I want to lose 5kg in 2 months'

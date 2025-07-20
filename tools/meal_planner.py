@@ -10,7 +10,7 @@ class MealPlanner(BaseModel):
 
 
 
-@function_tool
+@function_tool(name_override="meal_planner")
 async def meal_planner(ctx: RunContextWrapper[UserSessionContext], diet_preference: str) -> MealPlanner:
     """
     Generates a 7-day meal plan according to user diet_preference.

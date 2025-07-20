@@ -1,20 +1,24 @@
 from agents import (
     Agent,
     GuardrailFunctionOutput,
-    InputGuardrailTripwireTriggered,
-    OutputGuardrailTripwireTriggered,
     RunContextWrapper,
-    Runner,
     input_guardrail,
     output_guardrail
 )
 from typing import List, Union
+from configure_gemini import config
+from pydantic import BaseModel
+from context import UserSessionContext
 from schemas.goal_schema import ParsedGoal
 
+class HealthRelatedOutput(BaseModel):
+    is_input_valid: bool
+    reasoning: str
+    
 
 @input_guardrail
 async def goal_input_guadrail(
-    ctx: RunContextWrapper, agent: Agent, input: Union[str, List]
+    ctx: RunContextWrapper[UserSessionContext], agent: Agent, input: Union[str, List]
 ) -> GuardrailFunctionOutput:
     """
     Validates user input for:
@@ -53,17 +57,22 @@ async def goal_input_guadrail(
             output_info="Injury-related message allowed",
             tripwire_triggered=False
         )
+    
+    invalid_words = ["day", "days", "week", "weeks",]
 
-    if "100kg" in input_text and ("days" in input_text or "week" in input_text):
-        return GuardrailFunctionOutput(
-            output_info="❌ Unrealistic goal. Please provide a more achievable target like 5-10kg in 2-3 months.",
-            tripwire_triggered=True
-        )
+    # if "100kg" and any(word in input_text for word in invalid_words):
+    #     print("⚠️ Invalid input detected.")
+    #     return GuardrailFunctionOutput(
+    #         output_info="❌ Unrealistic goal. Please provide a more achievable target like 5-10kg in 2-3 months.",
+    #         tripwire_triggered=True
+    #     )
 
     valid_keywords = [
         "lose", "gain", "build", "improve", "track", "plan",
         "workout", "exercise", "meal", "diet", "schedule",
-        "check-in", "weight", "muscle", "routine", "sleep"
+        "check-in", "weight", "muscle", "routine", "sleep", 
+        "beginner", "intermediate", "advanced", "restrictions",
+        "dietary", "general", "sense", "preferences", "kg", "vegiterian", 
     ]
 
     if not any(keyword in input_text for keyword in valid_keywords):

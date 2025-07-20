@@ -34,7 +34,7 @@ workout_agent = Agent(
 )
 
 
-@function_tool
+@function_tool(name_override="workout_recommend")
 async def workout_recommend(ctx: RunContextWrapper[UserSessionContext], experience_level: str) -> str:
     """
     Generates a 7-day workout plan based on the user's goal and experience level.
