@@ -54,10 +54,11 @@ async def workout_recommend(ctx: RunContextWrapper[UserSessionContext], experien
             context=ctx.context,
             run_config=config
         )
-
+        if not ctx.context.goal:
+            ctx.context.goal = {"goal_type": "general_fitness"}
         ctx.context.workout_plan = result.final_output
 
         return "✅ Your 7-day personalized workout plan has been created! 💪 Let me know if you'd like to adjust it."
 
     except Exception as e:
-        return f"❌ Something went wrong while generating your workout plan. Error: {str(e)}"
+        return f"❌ Failed to create workout plan due to an internal error. Please try again later.. Error: {str(e)}"

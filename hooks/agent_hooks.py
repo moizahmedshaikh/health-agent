@@ -1,12 +1,8 @@
-from typing import Any
-from agents import Agent, RunContextWrapper, RunHooks, AgentHooks
+async def on_agent_start_handler(history):
+    print("🔄 [Lifecycle] Agent run started.")
+    print(f"Chat history so far: {history}")
 
-class TestHook(RunHooks):
-    def __init__(self):
-        self.event_counter = 0
-        self.name = "TestHook"
 
-    async def on_agent_start(self, context: RunContextWrapper, agent: Agent)-> None:
-        self.event_counter += 1
-        print(f"### HookName: {self.name}, Counts: {self.event_counter}, Agent: {agent.name} started. Usage: {context.usage}")
-
+async def on_agent_end_handler(agent_reply: str):
+    print("✅ [Lifecycle] Agent run completed.")
+    print(f"Agent Reply: {agent_reply}")

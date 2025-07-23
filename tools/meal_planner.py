@@ -11,34 +11,39 @@ class MealPlanner(BaseModel):
 
 
 @function_tool(name_override="meal_planner")
-async def meal_planner(ctx: RunContextWrapper[UserSessionContext], diet_preference: str) -> MealPlanner:
+async def meal_planner(ctx: RunContextWrapper[UserSessionContext], diet_preference: str) -> str:
     """
     Generates a 7-day meal plan according to user diet_preference.
     """
-    
-    if diet_preference.lower() not in ["vegetarian", "non-vegetarian", "keto", "vegan"]:
-        raise ValueError("Please choose a valid diet preference: vegetarian, non-vegetarian, keto, or vegan.")
 
+    if diet_preference.lower() not in ["vegetarian", "non vegetarian", "non-vegetarian", "keto", "vegan"]:
+        return "❌ Invalid diet preference. Please choose from: vegetarian, non-vegetarian, keto, or vegan."
 
     instructions = (
         f"Create a 7-day {diet_preference.lower()} meal plan in list format (one string per day). "
-        f"Make sure to follow the {diet_preference.lower()} diet strictly."
-        f"Respond ONLY with a list of 7 meal suggestio ns."
+        f"Make sure to follow the {diet_preference.lower()} diet strictly. "
+        f"Respond ONLY with a list of 7 meal suggestions."
     )
 
     dynamic_agent = Agent(
         name="Meal Planner Agent",
-        instructions= instructions,
+        instructions=instructions,
         output_type=MealPlanner
     )
 
-    result = await Runner.run(
-        dynamic_agent,
-        input=diet_preference,
-        context=ctx.context,
-        run_config=config
-    )
+    try:
+        result = await Runner.run(
+            dynamic_agent,
+            input=diet_preference,
+            context=ctx.context,
+            run_config=config
+        )
 
-    ctx.context.meal_plan = result.final_output
+        meal_data = result.final_output  # this is MealPlanner object
+        ctx.context.meal_plan = meal_data
 
-    return result.final_output
+        formatted_meals = "\n".join([f"- {day}" for day in meal_data.days])
+        return f"✅ Here's your 7-day {diet_preference.lower()} meal plan:\n{formatted_meals}"
+
+    except Exception as e:
+        return f"❌ Failed to generate meal plan. Error: {str(e)}"
